@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import type {
-  Customer,
-  Employee,
-  Project,
-  Vendor,
-  PurchaseOrder,
-  Invoice
-} from '@/lib/supabase'
+import type { Database } from '@/types/supabase'
+
+type TableName = keyof Database['public']['Tables']
+type TableRow<K extends TableName> = Database['public']['Tables'][K]['Row']
+type TableInsert<K extends TableName> = Database['public']['Tables'][K]['Insert']
 
 // Generic hook for database operations
-export function useDatabase<T>(tableName: string) {
-  const [data, setData] = useState<T[]>([])
+export function useDatabase<K extends TableName>(tableName: K) {
+  const [data, setData] = useState<TableRow<K>[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -29,19 +26,19 @@ export function useDatabase<T>(tableName: string) {
         throw fetchError
       }
       
-      setData(result || [])
+      setData((result as unknown as TableRow<K>[]) || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Bir hata oluştu')
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
     } finally {
       setLoading(false)
     }
   }
 
-  const create = async (item: Omit<T, 'id' | 'created_at' | 'updated_at'>) => {
+  const create = async (item: Omit<TableInsert<K>, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { data: result, error: createError } = await supabase
         .from(tableName)
-        .insert([{ ...item, updated_at: new Date().toISOString() }])
+        .insert([{ ...(item as TableInsert<K>), updated_at: new Date().toISOString() } as any])
         .select()
       
       if (createError) {
@@ -51,16 +48,16 @@ export function useDatabase<T>(tableName: string) {
       await fetchData() // Refresh data
       return result[0]
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Oluşturma hatası')
+      throw new Error(err instanceof Error ? err.message : 'Create operation failed')
     }
   }
 
-  const update = async (id: number, updates: Partial<T>) => {
+  const update = async (id: number, updates: Partial<TableInsert<K>>) => {
     try {
       const { data: result, error: updateError } = await supabase
         .from(tableName)
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id)
+        .update({ ...updates, updated_at: new Date().toISOString() } as any)
+        .eq('id', id as any)
         .select()
       
       if (updateError) {
@@ -70,7 +67,7 @@ export function useDatabase<T>(tableName: string) {
       await fetchData() // Refresh data
       return result[0]
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Güncelleme hatası')
+      throw new Error(err instanceof Error ? err.message : 'Update operation failed')
     }
   }
 
@@ -79,7 +76,7 @@ export function useDatabase<T>(tableName: string) {
       const { error: deleteError } = await supabase
         .from(tableName)
         .delete()
-        .eq('id', id)
+        .eq('id', id as any)
       
       if (deleteError) {
         throw deleteError
@@ -87,7 +84,7 @@ export function useDatabase<T>(tableName: string) {
       
       await fetchData() // Refresh data
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Silme hatası')
+      throw new Error(err instanceof Error ? err.message : 'Delete operation failed')
     }
   }
 
@@ -107,9 +104,9 @@ export function useDatabase<T>(tableName: string) {
 }
 
 // Specific hooks for each table
-export const useCustomers = () => useDatabase<Customer>('customers')
-export const useEmployees = () => useDatabase<Employee>('employees')
-export const useProjects = () => useDatabase<Project>('projects')
-export const useVendors = () => useDatabase<Vendor>('vendors')
-export const usePurchaseOrders = () => useDatabase<PurchaseOrder>('purchase_orders')
-export const useInvoices = () => useDatabase<Invoice>('invoices')
+export const useCustomers = () => useDatabase('customers')
+export const useEmployees = () => useDatabase('employees')
+export const useProjects = () => useDatabase('projects')
+export const useVendors = () => useDatabase('vendors')
+export const usePurchaseOrders = () => useDatabase('purchase_orders')
+export const useInvoices = () => useDatabase('invoices')

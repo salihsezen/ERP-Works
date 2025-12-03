@@ -6,18 +6,23 @@ import { ProjectForm } from '@/components/projects/ProjectForm'
 import { ProjectTable } from '@/components/projects/ProjectTable'
 import { Plus } from 'lucide-react'
 import type { Project } from '@/lib/supabase'
+import { toast } from 'sonner'
+import { useSearchParams } from 'react-router-dom'
 
 export function Projects() {
   const { data: projects, loading, error, create, update, remove } = useProjects()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [searchParams] = useSearchParams()
+  const statusFilter = searchParams.get('status')
 
   const handleCreate = async (projectData: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       await create(projectData)
       setIsModalOpen(false)
+      toast.success('Project created')
     } catch (err) {
-      alert('Proje oluşturulurken hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'))
+      toast.error('Error while creating project', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -28,8 +33,9 @@ export function Projects() {
       await update(editingProject.id, projectData)
       setIsModalOpen(false)
       setEditingProject(null)
+      toast.success('Project updated')
     } catch (err) {
-      alert('Proje güncellenirken hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'))
+      toast.error('Error while updating project', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -39,14 +45,15 @@ export function Projects() {
   }
 
   const handleDelete = async (project: Project) => {
-    if (!confirm(`${project.project_number} numaralı projeyi silmek istediğinizden emin misiniz?`)) {
+    if (!confirm(`Are you sure you want to delete project ${project.project_number}?`)) {
       return
     }
     
     try {
       await remove(project.id)
+      toast.success('Project deleted')
     } catch (err) {
-      alert('Proje silinirken hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'))
+      toast.error('Error while deleting project', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -71,26 +78,30 @@ export function Projects() {
     )
   }
 
+  const filteredProjects = statusFilter
+    ? projects.filter(p => (p.status || '').toLowerCase() === statusFilter.toLowerCase())
+    : projects
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Projects</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Projects</h1>
           <p className="text-slate-600 mt-1">Manage project information</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-primary flex items-center gap-2"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4" />
           New Project
         </button>
       </div>
 
       {/* Table */}
       <ProjectTable
-        projects={projects}
+        projects={filteredProjects}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

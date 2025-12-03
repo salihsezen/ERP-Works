@@ -1,0 +1,38 @@
+import { supabase } from './lib/supabase'
+
+async function testAllTables() {
+  const tables = ['customers', 'employees', 'projects', 'vendors', 'purchase_orders', 'invoices'];
+  
+  console.log('Testing Supabase database connection and table access...\n');
+  
+  for (const table of tables) {
+    try {
+      console.log(`Testing table: ${table}`);
+      
+      // Test if table exists and we can read from it
+      const { data, error, count } = await supabase
+        .from(table)
+        .select('*', { count: 'exact' })
+        .limit(1);
+      
+      if (error) {
+        console.error(`❌ Error accessing table '${table}':`, error.message);
+        console.error(`   Error details:`, error);
+      } else {
+        console.log(`✅ Table '${table}' accessible. Row count: ${count || 0}`);
+        if (data && data.length > 0) {
+          console.log(`   Sample record:`, JSON.stringify(data[0], null, 2));
+        }
+      }
+      
+      console.log('---');
+    } catch (err) {
+      console.error(`❌ Unexpected error with table '${table}':`, err);
+    }
+  }
+  
+  console.log('\nDatabase test completed.');
+}
+
+// Run the test
+testAllTables();

@@ -21,23 +21,23 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Overlay */}
         <div 
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+          className="fixed inset-0 transition-opacity bg-black/60 backdrop-blur-sm"
           onClick={onClose}
         />
         
         {/* Modal */}
         <div className={`
           inline-block w-full ${sizeClasses[size]} p-6 my-8 text-left align-middle
-          transition-all transform bg-white shadow-xl rounded-lg
-        `}>
+          transition-all transform rounded-2xl
+        `} style={{ background: 'var(--modal-bg)', border: `1px solid var(--modal-border)`, boxShadow: 'var(--modal-shadow)', backdropFilter: 'blur(12px)' }}>
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">
               {title}
             </h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-200 transition-colors"
             >
               <span className="sr-only">Kapat</span>
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

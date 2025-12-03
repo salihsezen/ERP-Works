@@ -5,6 +5,7 @@ export interface DashboardStats {
   totalVendors: number
   activePurchaseOrders: number
   pendingInvoices: number
+  overdueInvoices: number
   totalRevenue: number
   monthlyRevenue: number
 }

@@ -6,6 +6,7 @@ import { VendorForm } from '@/components/vendors/VendorForm'
 import { VendorTable } from '@/components/vendors/VendorTable'
 import { Plus } from 'lucide-react'
 import type { Vendor } from '@/lib/supabase'
+import { toast } from 'sonner'
 
 export function Vendors() {
   const { data: vendors, loading, error, create, update, remove } = useVendors()
@@ -16,8 +17,9 @@ export function Vendors() {
     try {
       await create(vendorData)
       setIsModalOpen(false)
+      toast.success('Vendor created')
     } catch (err) {
-      alert('Error creating vendor: ' + (err instanceof Error ? err.message : 'Unknown error'))
+      toast.error('Error creating vendor', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -28,8 +30,9 @@ export function Vendors() {
       await update(editingVendor.id, vendorData)
       setIsModalOpen(false)
       setEditingVendor(null)
+      toast.success('Vendor updated')
     } catch (err) {
-      alert('Error updating vendor: ' + (err instanceof Error ? err.message : 'Unknown error'))
+      toast.error('Error updating vendor', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -45,8 +48,9 @@ export function Vendors() {
     
     try {
       await remove(vendor.id)
+      toast.success('Vendor deleted')
     } catch (err) {
-      alert('Error deleting vendor: ' + (err instanceof Error ? err.message : 'Unknown error'))
+      toast.error('Error deleting vendor', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -76,14 +80,14 @@ export function Vendors() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Vendors</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Vendors</h1>
           <p className="text-slate-600 mt-1">Manage vendor information</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-primary flex items-center gap-2"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4" />
           New Vendor
         </button>
       </div>

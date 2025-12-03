@@ -56,14 +56,17 @@ export function useDashboardData() {
       const currentMonthRevenue = monthlyRevenue[monthlyRevenue.length - 1]?.revenue || 0
       const activePurchaseOrders = purchaseOrdersData.data?.filter(po => po.status !== 0).length || 0
       const pendingInvoices = invoicesData.data?.filter(invoice => invoice.status === 'Pending').length || 0
+      const overdueInvoices = invoicesData.data?.filter(invoice => invoice.status === 'Overdue').length || 0
+      const activeProjects = projectsData.data?.filter(project => project.status === 'Active').length || 0
 
       setStats({
         totalCustomers: customersData.count || 0,
-        totalProjects: projectsData.data?.length || 0,
+        totalProjects: activeProjects,
         totalEmployees: employeesData.count || 0,
         totalVendors: vendorsData.count || 0,
         activePurchaseOrders,
         pendingInvoices,
+        overdueInvoices,
         totalRevenue,
         monthlyRevenue: currentMonthRevenue
       })

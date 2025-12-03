@@ -53,14 +53,18 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       {/* Sidebar */}
       <div className={`
         fixed lg:static inset-y-0 left-0 z-40 h-screen min-h-screen
-        ${collapsed ? 'w-16' : 'w-64'} bg-slate-800 text-white
+        ${collapsed ? 'w-16' : 'w-64'} text-white
         transform lg:transform-none transition-all duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
+        border-r
+      `} style={{
+        background: 'linear-gradient(180deg, #111827 0%, #0f172a 100%)',
+        borderColor: 'var(--border-subtle)'
+      }}>
         {!collapsed && (
           <div className="flex flex-col items-center justify-center h-16 bg-slate-900">
-            <h1 className="text-xl font-bold">ERP System</h1>
-            <p className="text-xs text-slate-400 mt-1">Created by Salih Sezen</p>
+            <h1 className="text-xl font-bold">Innobi OpsCore</h1>
+            <p className="text-xs text-slate-400 mt-1">Modern operations suite</p>
           </div>
         )}
         
@@ -74,10 +78,10 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                     to={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`
-                      flex items-center ${collapsed ? 'justify-center px-2 py-3' : 'px-4 py-3'} rounded-lg transition-colors
+                      flex items-center ${collapsed ? 'justify-center px-2 py-3' : 'px-4 py-3'} rounded-xl transition-all
                       ${isActive
-                        ? 'bg-slate-700 text-white'
-                        : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                        ? 'bg-white/10 text-white shadow-sm'
+                        : 'text-slate-300 hover:bg-white/10 hover:text-white'
                       }
                     `}
                     title={collapsed ? item.name : undefined}

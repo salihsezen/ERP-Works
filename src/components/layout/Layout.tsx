@@ -15,14 +15,14 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-background text-foreground">
       <div className="relative">
         <Sidebar collapsed={sidebarCollapsed} />
         
         {/* Toggle Button */}
         <button
           onClick={toggleSidebar}
-          className="absolute bg-white border border-slate-200 rounded-r-lg shadow-md hover:shadow-lg transition-all duration-300 p-2 text-slate-600 hover:text-slate-900"
+          className="absolute bg-white border border-slate-200 rounded-r-lg shadow-md hover:shadow-lg transition-all duration-300 p-2 text-slate-600 hover:text-[var(--text-primary)]"
           style={{
             top: '50%',
             right: '-20px',
@@ -38,7 +38,7 @@ export function Layout({ children }: LayoutProps) {
         </button>
       </div>
       
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-background">
         <Header />
         <main className="flex-1 overflow-auto p-6">
           {children}

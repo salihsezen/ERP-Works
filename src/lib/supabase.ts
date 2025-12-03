@@ -1,11 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/supabase'
 
-const supabaseUrl = 'https://pswtelnzzvascdchtznh.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzd3RlbG56enZhc2NkY2h0em5oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1MTU1NDIsImV4cCI6MjA3MTA5MTU0Mn0.ZZ_u7X80TL2QhNlayyRGSyLsoTtZIIa7nIPvsqBfjr0'
+// Support both Vite runtime (import.meta.env) and Node scripts (process.env)
+const supabaseUrl =
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_SUPABASE_URL) ||
+  (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_URL : undefined)
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabaseAnonKey =
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_SUPABASE_ANON_KEY) ||
+  (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_ANON_KEY : undefined)
 
-// Database types for TypeScript
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Supabase environment variables are missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env/.env.local and restart the dev server.')
+}
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+
+// Convenience interfaces for app-level typing
 export interface Customer {
   id: number
   name: string
@@ -117,15 +128,13 @@ export const getVendorTypeText = (type: number) => {
 
 // Phone number formatting utility
 export const formatPhoneNumber = (phone: string) => {
-  // Remove all non-digits
   const cleaned = phone.replace(/\D/g, '')
   
-  // If it starts with 1, format as North American
+  // North American formats
   if (cleaned.length === 11 && cleaned.startsWith('1')) {
     return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`
   }
   
-  // If it's 10 digits, add +1 prefix
   if (cleaned.length === 10) {
     return `+1 (${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
   }

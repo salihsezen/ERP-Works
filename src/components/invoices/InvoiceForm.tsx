@@ -1,11 +1,20 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Invoice, Project } from '@/lib/supabase'
+import { INVOICE_STATUSES, normalizeInvoiceStatus, type InvoiceStatus } from '@/lib/status'
 
 interface InvoiceFormProps {
   invoice?: Invoice | null
   onSubmit: (data: Omit<Invoice, 'id' | 'created_at' | 'updated_at'>) => void
   onCancel: () => void
+}
+
+const allowedTransitions: Record<InvoiceStatus, InvoiceStatus[]> = {
+  Pending: ['Pending', 'Approved', 'Paid', 'Overdue', 'Cancelled'],
+  Approved: ['Approved', 'Paid', 'Overdue', 'Cancelled'],
+  Paid: ['Paid', 'Cancelled'],
+  Overdue: ['Overdue', 'Paid', 'Cancelled'],
+  Cancelled: ['Cancelled']
 }
 
 export function InvoiceForm({ invoice, onSubmit, onCancel }: InvoiceFormProps) {
@@ -16,7 +25,7 @@ export function InvoiceForm({ invoice, onSubmit, onCancel }: InvoiceFormProps) {
     amount: invoice?.amount || 0,
     currency: invoice?.currency || 'TRY',
     invoice_date: invoice?.invoice_date || '',
-    status: invoice?.status || 'Pending',
+    status: (invoice?.status as InvoiceStatus) || 'Pending',
     due_date: invoice?.due_date || ''
   })
 
@@ -119,6 +128,9 @@ export function InvoiceForm({ invoice, onSubmit, onCancel }: InvoiceFormProps) {
       </div>
     )
   }
+
+  const currentStatus = normalizeInvoiceStatus(invoice?.status)
+  const allowedStatusOptions = invoice ? allowedTransitions[currentStatus] : INVOICE_STATUSES.map(s => s.value)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -239,10 +251,9 @@ export function InvoiceForm({ invoice, onSubmit, onCancel }: InvoiceFormProps) {
             onChange={(e) => handleChange('status', e.target.value)}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="Pending">Pending</option>
-            <option value="Paid">Paid</option>
-            <option value="Overdue">Overdue</option>
-            <option value="Cancelled">Cancelled</option>
+            {INVOICE_STATUSES.filter(s => allowedStatusOptions.includes(s.value)).map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
           </select>
         </div>
       </div>

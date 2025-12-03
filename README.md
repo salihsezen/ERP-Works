@@ -1,50 +1,24 @@
-# React + TypeScript + Vite
+# Innobi OpsCore
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern ERP-style demo built with React, TypeScript, Vite, Tailwind, and Supabase.
 
-Currently, two official plugins are available:
+## Getting Started
+1) Install dependencies: `npm install` (or `pnpm install`).
+2) Copy `.env.example` to `.env.local` (or `.env`) and set:
+   - `VITE_SUPABASE_URL=YOUR_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY`
+3) Run the dev server: `npm run dev`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Supabase Types
+- From Supabase Dashboard: Table Editor → Code → TypeScript → copy the generated types into `src/types/supabase.ts` (replace the placeholder Database type).
 
-## Expanding the ESLint configuration
+## Key Areas
+- Dashboard with project status and revenue charts.
+- CRUD pages for customers, projects, vendors, employees, purchase orders, and invoices.
+- Layout with collapsible sidebar and responsive header.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## Next Steps (suggested)
+- Add dark/light theme toggle.
+- Enable Supabase Auth + RLS policies.
+- Improve forms with validation + toasts.
+- Add tests (unit + e2e) and CI.

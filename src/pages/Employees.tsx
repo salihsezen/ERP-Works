@@ -6,6 +6,7 @@ import { EmployeeForm } from '@/components/employees/EmployeeForm'
 import { EmployeeTable } from '@/components/employees/EmployeeTable'
 import { Plus } from 'lucide-react'
 import type { Employee } from '@/lib/supabase'
+import { toast } from 'sonner'
 
 export function Employees() {
   const { data: employees, loading, error, create, update, remove } = useEmployees()
@@ -16,8 +17,9 @@ export function Employees() {
     try {
       await create(employeeData)
       setIsModalOpen(false)
+      toast.success('Employee created')
     } catch (err) {
-      alert('Çalışan oluşturulurken hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'))
+      toast.error('Error while creating employee', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -28,8 +30,9 @@ export function Employees() {
       await update(editingEmployee.id, employeeData)
       setIsModalOpen(false)
       setEditingEmployee(null)
+      toast.success('Employee updated')
     } catch (err) {
-      alert('Çalışan güncellenirken hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'))
+      toast.error('Error while updating employee', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -39,14 +42,15 @@ export function Employees() {
   }
 
   const handleDelete = async (employee: Employee) => {
-    if (!confirm(`${employee.first_name} ${employee.last_name} adlı çalışanı silmek istediğinizden emin misiniz?`)) {
+    if (!confirm(`Are you sure you want to delete ${employee.first_name} ${employee.last_name}?`)) {
       return
     }
     
     try {
       await remove(employee.id)
+      toast.success('Employee deleted')
     } catch (err) {
-      alert('Çalışan silinirken hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'))
+      toast.error('Error while deleting employee', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -76,14 +80,14 @@ export function Employees() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Employees</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Employees</h1>
           <p className="text-slate-600 mt-1">Manage employee information</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-primary flex items-center gap-2"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4" />
           New Employee
         </button>
       </div>

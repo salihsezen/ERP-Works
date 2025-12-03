@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePurchaseOrders } from '@/hooks/useDatabase'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Modal } from '@/components/ui/Modal'
@@ -6,18 +6,26 @@ import { PurchaseOrderForm } from '@/components/purchase-orders/PurchaseOrderFor
 import { PurchaseOrderTable } from '@/components/purchase-orders/PurchaseOrderTable'
 import { Plus } from 'lucide-react'
 import type { PurchaseOrder } from '@/lib/supabase'
+import { toast } from 'sonner'
+import { useSearchParams } from 'react-router-dom'
+import { isActivePurchaseOrderStatus } from '@/lib/status'
+import { useApprovalState } from '@/lib/approvals'
 
 export function PurchaseOrders() {
   const { data: purchaseOrders, loading, error, create, update, remove } = usePurchaseOrders()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingPurchaseOrder, setEditingPurchaseOrder] = useState<PurchaseOrder | null>(null)
+  const [searchParams] = useSearchParams()
+  const statusFilter = searchParams.get('status')
+  const { approvals, setApproval } = useApprovalState('purchase_order', purchaseOrders)
 
   const handleCreate = async (purchaseOrderData: Omit<PurchaseOrder, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       await create(purchaseOrderData)
       setIsModalOpen(false)
+      toast.success('Purchase order created')
     } catch (err) {
-      alert('Satın alma siparişi oluşturulurken hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'))
+      toast.error('Error while creating purchase order', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -28,8 +36,9 @@ export function PurchaseOrders() {
       await update(editingPurchaseOrder.id, purchaseOrderData)
       setIsModalOpen(false)
       setEditingPurchaseOrder(null)
+      toast.success('Purchase order updated')
     } catch (err) {
-      alert('Satın alma siparişi güncellenirken hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'))
+      toast.error('Error while updating purchase order', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -39,14 +48,35 @@ export function PurchaseOrders() {
   }
 
   const handleDelete = async (purchaseOrder: PurchaseOrder) => {
-    if (!confirm('Bu satın alma siparişini silmek istediğinizden emin misiniz?')) {
+    if (!confirm('Are you sure you want to delete this purchase order?')) {
       return
     }
     
     try {
       await remove(purchaseOrder.id)
+      toast.success('Purchase order deleted')
     } catch (err) {
-      alert('Satın alma siparişi silinirken hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'))
+      toast.error('Error while deleting purchase order', { description: err instanceof Error ? err.message : 'Unknown error' })
+    }
+  }
+
+  const handleApprove = async (purchaseOrder: PurchaseOrder) => {
+    try {
+      await update(purchaseOrder.id, { status: 2 })
+      setApproval(purchaseOrder.id, 'approved')
+      toast.success('Purchase order approved')
+    } catch (err) {
+      toast.error('Error while approving purchase order', { description: err instanceof Error ? err.message : 'Unknown error' })
+    }
+  }
+
+  const handleReject = async (purchaseOrder: PurchaseOrder) => {
+    try {
+      await update(purchaseOrder.id, { status: 0 })
+      setApproval(purchaseOrder.id, 'rejected')
+      toast.success('Purchase order rejected')
+    } catch (err) {
+      toast.error('Error while rejecting purchase order', { description: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -54,6 +84,12 @@ export function PurchaseOrders() {
     setIsModalOpen(false)
     setEditingPurchaseOrder(null)
   }
+
+  useEffect(() => {
+    if (error) {
+      toast.error('Failed to load purchase orders', { description: error })
+    }
+  }, [error])
 
   if (loading) {
     return (
@@ -66,33 +102,40 @@ export function PurchaseOrders() {
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-600">Hata: {error}</p>
+        <p className="text-red-600">Error: {error}</p>
       </div>
     )
   }
+
+  const filteredPurchaseOrders = statusFilter === 'active'
+    ? purchaseOrders.filter(po => isActivePurchaseOrderStatus(po.status))
+    : purchaseOrders
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Purchase Orders</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Purchase Orders</h1>
           <p className="text-slate-600 mt-1">Manage purchase orders</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-primary flex items-center gap-2"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4" />
           New Order
         </button>
       </div>
 
       {/* Table */}
       <PurchaseOrderTable
-        purchaseOrders={purchaseOrders}
+        purchaseOrders={filteredPurchaseOrders}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        approvals={approvals}
+        onApprove={handleApprove}
+        onReject={handleReject}
       />
 
       {/* Modal */}

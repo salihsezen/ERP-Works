@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { PurchaseOrder, Project, Vendor } from '@/lib/supabase'
+import { PURCHASE_ORDER_STATUSES } from '@/lib/status'
 
 interface PurchaseOrderFormProps {
   purchaseOrder?: PurchaseOrder | null
@@ -24,6 +25,13 @@ export function PurchaseOrderForm({ purchaseOrder, onSubmit, onCancel }: Purchas
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
+
+  const poTransitions: Record<number, number[]> = {
+    3: [3, 2, 0], // Under Review -> Ordered/Cancelled
+    2: [2, 1, 0], // Ordered -> Received/Cancelled
+    1: [1, 0],    // Received -> Cancelled
+    0: [0]        // Cancelled stays
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,6 +109,8 @@ export function PurchaseOrderForm({ purchaseOrder, onSubmit, onCancel }: Purchas
       </div>
     )
   }
+
+  const allowedPoStatuses = purchaseOrder ? (poTransitions[purchaseOrder.status ?? 3] || [3,2,1,0]) : PURCHASE_ORDER_STATUSES.map(s => s.value)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -217,10 +227,9 @@ export function PurchaseOrderForm({ purchaseOrder, onSubmit, onCancel }: Purchas
             onChange={(e) => handleChange('status', parseInt(e.target.value))}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value={3}>Under Review</option>
-            <option value={2}>Ordered</option>
-            <option value={1}>Received</option>
-            <option value={0}>Cancelled</option>
+            {PURCHASE_ORDER_STATUSES.filter(s => allowedPoStatuses.includes(s.value)).map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
           </select>
         </div>
       </div>
